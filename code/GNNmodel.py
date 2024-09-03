@@ -279,7 +279,7 @@ def plot_curve(val_aucs, test_aucs):
 
 
 def runModel():
-    data, train_data, val_data, test_data = load_and_create_graph('../outputs/KIBA_compound_embeddings.csv', '../outputs/KIBA_protein_embeddings.csv', '../dataset/KIBA/KIBA.csv')
+    data, train_data, val_data, test_data = load_and_create_graph('../outputs/KIBA_compound_embeddings.csv', '../outputs/KIBA_protein_embeddings.csv', '../dataset/KIBA.csv')
     node_types = [("Compound",2111),("protein",229)]
     model, optimizer = initialize_model(data, node_types)
 
@@ -290,10 +290,10 @@ def runModel():
         loss = train(model, optimizer, train_data)
         val_preds, val_labels = test(model, val_data)
 
-        print('val_preds:')
-        print(val_preds)
-        print('\nval_labels:')
-        print(val_labels)
+        # print('val_preds:')
+        # print(val_preds)
+        # print('\nval_labels:')
+        # print(val_labels)
 
         val_metrics = compute_metrics(val_preds, val_labels)
         val_aucs.append(val_metrics['auc'])
@@ -303,7 +303,7 @@ def runModel():
         # test_aucs.append(test_metrics['auc'])
         # Test AUC: {test_metrics["auc"]:.4f}
 
-        print(f'Epoch {epoch:>2} | Loss: {loss:.4f} | Val AUC: {val_metrics["auc"]:.4f} | ')
+        print(f'Epoch {epoch:>10} | Loss: {loss:.4f} | Val AUC: {val_metrics["auc"]:.4f} | ')
 
 
 

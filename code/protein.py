@@ -46,6 +46,6 @@ def generate_protein_embeddings(protein_file_path, dimensions=64, walk_length=30
     return embeddings_df
 
 # Example usage
-protein_file_path = '../dataset/KIBA/KIBA_protein_mapping.csv'
+protein_file_path = '../dataset/KIBA_protein_mapping.csv'
 embeddings_df = generate_protein_embeddings(protein_file_path)
 embeddings_df.to_csv(f'{mainpath}KIBA_protein_embeddings.csv', index=True)
