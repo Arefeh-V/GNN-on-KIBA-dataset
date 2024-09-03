@@ -21,8 +21,8 @@ edge_types = [
 
 torch.manual_seed(0)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-lr = 0.01
-epochs = 100
+lr = 0.1
+epochs = 101
 hidden_channels = 64
 
 
@@ -290,11 +290,6 @@ def runModel():
         loss = train(model, optimizer, train_data)
         val_preds, val_labels = test(model, val_data)
 
-        # print('val_preds:')
-        # print(val_preds)
-        # print('\nval_labels:')
-        # print(val_labels)
-
         val_metrics = compute_metrics(val_preds, val_labels)
         val_aucs.append(val_metrics['auc'])
         
@@ -303,7 +298,12 @@ def runModel():
         # test_aucs.append(test_metrics['auc'])
         # Test AUC: {test_metrics["auc"]:.4f}
 
-        print(f'Epoch {epoch:>10} | Loss: {loss:.4f} | Val AUC: {val_metrics["auc"]:.4f} | ')
+        if epoch % 10 == 0:
+            print('val_preds:')
+            print(val_preds)
+            print('\nval_labels:')
+            print(val_labels)
+            print(f'Epoch {epoch:>2} | Loss: {loss:.4f} | Val AUC: {val_metrics["auc"]:.4f} | ')
 
 
 
