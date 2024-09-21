@@ -129,7 +129,29 @@ def get_new_adj_mat(drug_features_path, target_features_path, adj_matrix_path, o
     print(f"Number of non-zero cells in the new weighted adjacency matrix: {new_non_zero}")
     
     return new_adj_matrix
-    
+
+
+def validate_edge_indices(data):
+    # Validate edge indices for compound-protein edges
+    compound_protein_edge_index = data['compound', 'interacts_with', 'protein'].edge_index
+    max_compound_index = data['compound'].x.size(0)
+    max_protein_index = data['protein'].x.size(0)
+
+    assert compound_protein_edge_index[0].max().item() < max_compound_index, \
+        f"Compound index {compound_protein_edge_index[0].max().item()} exceeds max index {max_compound_index - 1}"
+    assert compound_protein_edge_index[1].max().item() < max_protein_index, \
+        f"Protein index {compound_protein_edge_index[1].max().item()} exceeds max index {max_protein_index - 1}"
+
+    # Validate edge indices for protein-compound edges
+    protein_compound_edge_index = data['protein', 'interacts_with', 'compound'].edge_index
+
+    assert protein_compound_edge_index[0].max().item() < max_protein_index, \
+        f"Protein index {protein_compound_edge_index[0].max().item()} exceeds max index {max_protein_index - 1}"
+    assert protein_compound_edge_index[1].max().item() < max_compound_index, \
+        f"Compound index {protein_compound_edge_index[1].max().item()} exceeds max index {max_compound_index - 1}"
+
+    print("All edge indices are within bounds.")
+   
 
 
 if __name__ == "__main__":
