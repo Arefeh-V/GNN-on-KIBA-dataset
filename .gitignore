@@ -1,0 +1,43 @@
+# Ignore Python cache and compiled files
+__pycache__/
+*.py[cod]
+
+# folders
+plots/
+
+# files
+negSamplingMethodDesc.txt
+
+
+
+
+
+# Virtual environment
+venv/
+env/
+
+# Environment variable files
+.env
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Log files
+*.log
+
+# Ignore binary files
+*.exe
+*.dll
+*.so
+
+# Ignore compiled libraries
+*.o
+*.a
+*.out
+
+
+
+
+
+
+
