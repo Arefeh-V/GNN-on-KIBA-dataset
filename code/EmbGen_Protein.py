@@ -27,7 +27,7 @@ def protein_sequence_to_graph(sequence):
         G.add_edge(sequence[i], sequence[i+1])
     return G
 
-def generate_protein_embeddings(protein_file_path, dimensions=64, workers=10):
+def generate_protein_embeddings(protein_file_path, dimensions=8, workers=10):
     # Read the protein data
     protein_data = pd.read_csv(protein_file_path)
     
@@ -50,7 +50,7 @@ def generate_protein_embeddings(protein_file_path, dimensions=64, workers=10):
         
 
         # Initialize Node2Vec model
-        node2vec = Node2Vec(graph, p=2, q=0.5, dimensions=dimensions, walk_length=walk_length, num_walks=num_walks, workers=workers)
+        node2vec = Node2Vec(graph, p=4, q=1, dimensions=dimensions, walk_length=walk_length, num_walks=num_walks, workers=workers)
         
         # Precompute the walks (this step ensures the vocabulary is built)
         walks = node2vec.walks  # This generates the walks
@@ -60,7 +60,7 @@ def generate_protein_embeddings(protein_file_path, dimensions=64, workers=10):
         
         # Get embeddings for all nodes
         default_embedding = np.zeros(dimensions)
-        protein_embedding = np.mean([model.wv[node] for node in graph.nodes() if node in model.wv] or [default_embedding], axis=0)
+        protein_embedding = np.sum([model.wv[node] for node in graph.nodes() if node in model.wv] or [default_embedding], axis=0)
         
         embeddings[protein_id] = protein_embedding
     

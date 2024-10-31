@@ -41,12 +41,12 @@ def smiles_to_graph(smiles):
 
     return G
 
-def generate_node2vec_embeddings(graph, dimensions=64, workers=10):
+def generate_node2vec_embeddings(graph, dimensions, workers=10):
 
     num_walks, walk_length = get_dynamic_walk_params(graph)
 
     # Initialize Node2Vec model
-    node2vec = Node2Vec(graph, p=2, q=0.5, dimensions=dimensions, walk_length=walk_length, num_walks=num_walks, workers=workers)
+    node2vec = Node2Vec(graph, p=4, q=1, dimensions=dimensions, walk_length=walk_length, num_walks=num_walks, workers=workers)
     
     # Fit Node2Vec model
     model = node2vec.fit(window=10, min_count=1, batch_words=4)
@@ -55,11 +55,11 @@ def generate_node2vec_embeddings(graph, dimensions=64, workers=10):
     embeddings = {node: model.wv[node] for node in graph.nodes()}
     
     # Aggregate node embeddings to get a graph-level embedding
-    graph_embedding = np.mean(list(embeddings.values()), axis=0)
+    graph_embedding = np.sum(list(embeddings.values()), axis=0)
     
     return graph_embedding
 
-def generate_drug_embeddings(file_path, dimensions=64):
+def generate_drug_embeddings(file_path, dimensions=8):
     # Read the CSV file
     df = pd.read_csv(file_path, header=0)
     smiles_list = dict(zip(df.iloc[:, 0], df.iloc[:, 1]))  # Assuming the first column is drug_id and the second is SMILES

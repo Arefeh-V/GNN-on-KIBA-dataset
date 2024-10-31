@@ -34,11 +34,12 @@ def run_cross_validation(data, train_data, test_data, lr, weight_decay, epochs, 
         train_aucs_all.append(train_aucs)
         val_aucs_all.append(val_aucs)
         if fold == n_splits:
-            print("This is the last fold. Saving the final model.")
+            print("This is the last fold ... Saving the final model ...")
             trained_model = model
 
         fold += 1
 
+    print('test evaluation started ... ')
     # After cross-validation, average the results
     avg_val_auc = np.mean([auc[-1] for auc in val_aucs_all])
     print(f"Average Validation AUC after {n_splits}-fold cross-validation: {avg_val_auc:.4f}")
@@ -61,7 +62,7 @@ def run_cross_validation(data, train_data, test_data, lr, weight_decay, epochs, 
         for metric, value in test_metrics.items():
             writer.writerow([metric, value])
 
-    print("Test metrics saved to 'test_metrics.csv'.")
+    print("Test metrics saved to csv file.")
     print(f'Test AUC: {test_metrics["auc"]:.4f}')
 
     return avg_val_auc

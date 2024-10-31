@@ -8,7 +8,7 @@ from Metrics import *
 def initialize_model(data, node_types, lr, weight_decay, optimizer_type):
     
     model = GNNModel(hidden_channels, data).to(device)
-
+    optimizer_instance = None
     if optimizer_type == 'Adam':
         optimizer_instance = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
     elif optimizer_type == 'SGD':

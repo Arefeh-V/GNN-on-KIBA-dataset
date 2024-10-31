@@ -12,16 +12,16 @@ if __name__ == "__main__":
     '../outputs/KIBA_protein_embeddings.csv', 
     '../dataset/KIBA.csv')
 
-    print('\n')
-    print(data)
-    print('\n')
-    print(train_data)
-    print('\n')
-    print(val_data)
-    print('\n')
-    print(test_data)
-    print('\n')
+    # print('\n')
+    # print(data)
+    # print('\n')
+    # print(train_data)
+    # print('\n')
+    # print(val_data)
+    # print('\n')
+    # print(test_data)
+    # print('\n')
 
-    # best_params, best_auc = grid_search(data, train_data, test_data)
+    best_params, best_auc = grid_search(data, train_data, test_data)
 
     

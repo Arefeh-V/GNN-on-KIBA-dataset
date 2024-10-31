@@ -23,5 +23,5 @@ pip install -r requirements.txt
 ```
 3- Run the Model
 ``` bash
-python GNNmodel.py
+python Main.py
 ```

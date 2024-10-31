@@ -4,8 +4,8 @@ from CrossValidation import run_cross_validation
 param_grid = {
     'lr': [1e-05],
     # 'hidden_channels': [32, 64, 128],
-    'weight_decay': [1e-5],
-    'epochs': [50],
+    'weight_decay': [1e-05],
+    'epochs': [500],
     'optimizer_type': ['Adam']
 }
 

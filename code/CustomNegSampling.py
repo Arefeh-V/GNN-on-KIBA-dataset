@@ -2,7 +2,7 @@ import torch
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
-def generate_neg_samples(data, num_neg_samples=27000):
+def generate_neg_samples(data, num_neg_samples):
     global_candidate_neg_edges = []  # Global variable to store negative samples for all drugs
 
     # 1. Compute similarity matrix for drugs and proteins
@@ -10,7 +10,7 @@ def generate_neg_samples(data, num_neg_samples=27000):
     protein_features = data['protein'].x.numpy()
 
     drug_similarity = cosine_similarity(drug_features)  # Compute drug similarity
-    protein_similarity = cosine_similarity(protein_features)  # Protein similarity (not directly used in this step)
+    # protein_similarity = cosine_similarity(protein_features)  # Protein similarity (not directly used in this step)
     
     num_drugs = drug_features.shape[0]
 
@@ -18,7 +18,7 @@ def generate_neg_samples(data, num_neg_samples=27000):
     for i in range(num_drugs):
         # 3. Find the 2 most dissimilar drugs to drug i
         drug_sim_i = drug_similarity[i]
-        dissimilar_drug_indices = np.argsort(drug_sim_i)[:2]  # Get indices of two least similar drugs
+        dissimilar_drug_indices = np.argsort(drug_sim_i)[:40]  # Get indices of two least similar drugs
         
         # 4. Gather proteins connected to these two dissimilar drugs
         dissimilar_proteins = []
@@ -39,7 +39,7 @@ def generate_neg_samples(data, num_neg_samples=27000):
         
         # Store negative samples for this drug in the global variable
         global_candidate_neg_edges.extend(neg_samples_for_i)
-    
+        
     # 8. Shuffle the negative samples to get the desired number
     global_candidate_neg_edges = global_candidate_neg_edges[:num_neg_samples]
     

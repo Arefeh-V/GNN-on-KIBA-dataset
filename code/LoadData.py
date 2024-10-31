@@ -6,7 +6,6 @@ import torch_geometric.transforms as T
 from torch_geometric.data import Data, HeteroData
 from torch_geometric.utils import from_scipy_sparse_matrix
 
-from weightedADJmat import get_new_adj_mat
 from GINmodel import device
 from CustomNegSampling import *
 
@@ -113,19 +112,23 @@ def load_and_create_graph(compound_embeddings_path, protein_embeddings_path, int
             num_val=0.0, 
             num_test=0.1, 
             is_undirected=True,
-            neg_sampling_ratio=0.0, 
+            # neg_sampling_ratio=0.0, 
              edge_types=('compound', 'interacts_with', 'protein'),
             # rev_edge_types=('protein', 'interacts_with', 'compound')
             )
     ])
     
     train_data, val_data, test_data = transform(data)
-    
+   
+   
+
     num_edges = data['compound', 'interacts_with', 'protein'].edge_index.size(1)
     all_neg_edge_index = generate_neg_samples(data, num_neg_samples=num_edges)
-    
+   
+   
     # Split negative samples into train and test sets based on the ratio
     train_neg_edges, test_neg_edges = split_neg_samples(all_neg_edge_index, train_ratio=0.9)
+    
     
     # Update the train and test sets with their respective negative samples
     train_data = update_data_with_neg_samples(train_data, train_neg_edges)
