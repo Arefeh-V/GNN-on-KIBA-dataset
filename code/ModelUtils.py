@@ -1,5 +1,4 @@
 import torch
-
 from EarlyStopping import *
 from GINmodel import *
 from Metrics import *
@@ -24,6 +23,7 @@ def initialize_model(data, node_types, lr, weight_decay, optimizer_type):
 
     return model, optimizer_instance
 
+
 def train(model, optimizer, data):
     model.train()
     z_dict = model(data.x_dict, data.edge_index_dict, data['compound', 'interacts_with', 'protein'].edge_label_index)
@@ -33,6 +33,7 @@ def train(model, optimizer, data):
     optimizer.step()
     
     return loss.item()
+
 
 def test(model, data):
     with torch.no_grad():
@@ -44,7 +45,6 @@ def test(model, data):
         return preds, labels, loss
 
 
-
 def runModel(data, train_data, val_data, lr, weight_decay, epochs, optimizer_type):
     node_types = [("Compound",2111),("protein",229)]
     model, optimizer = initialize_model(data, node_types, lr, weight_decay, optimizer_type)
@@ -52,7 +52,7 @@ def runModel(data, train_data, val_data, lr, weight_decay, epochs, optimizer_typ
     train_aucs = []
     val_aucs = []
 
-    early_stopping = EarlyStopping(tolerance=20, min_delta=0.5, counter=0)
+    early_stopping = EarlyStopping(tolerance=5, min_delta=0.1, counter=0)
 
     for epoch in range(epochs):
         train_loss = train(model, optimizer, train_data)

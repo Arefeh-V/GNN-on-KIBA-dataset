@@ -3,6 +3,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
 def generate_neg_samples(data, num_neg_samples):
+
     global_candidate_neg_edges = []  # Global variable to store negative samples for all drugs
 
     # 1. Compute similarity matrix for drugs and proteins
@@ -13,12 +14,12 @@ def generate_neg_samples(data, num_neg_samples):
     # protein_similarity = cosine_similarity(protein_features)  # Protein similarity (not directly used in this step)
     
     num_drugs = drug_features.shape[0]
-
+    
     # 2. Loop through each drug
     for i in range(num_drugs):
         # 3. Find the 2 most dissimilar drugs to drug i
         drug_sim_i = drug_similarity[i]
-        dissimilar_drug_indices = np.argsort(drug_sim_i)[:40]  # Get indices of two least similar drugs
+        dissimilar_drug_indices = np.argsort(drug_sim_i)[:2]  # Get indices of two least similar drugs
         
         # 4. Gather proteins connected to these two dissimilar drugs
         dissimilar_proteins = []
@@ -33,7 +34,7 @@ def generate_neg_samples(data, num_neg_samples):
 
         # 6. Get the difference: proteins connected to dissimilar drugs but not to drug i
         candidate_neg_proteins = dissimilar_proteins - drug_i_proteins
-        
+  
         # 7. Generate candidate negative samples for drug i
         neg_samples_for_i = [(i, prot) for prot in candidate_neg_proteins]
         
@@ -56,15 +57,12 @@ def get_connected_proteins(data, drug_idx):
     This assumes a bipartite graph structure between drugs and proteins. 
     """
     edge_index = data['compound', 'interacts_with', 'protein'].edge_index
-    connected_proteins = edge_index[1, edge_index[0] == drug_idx].tolist()  # Get proteins connected to drug
+    connected_proteins = edge_index[1][edge_index[0] == drug_idx].tolist()
     return connected_proteins
 
 
 
 def update_data_with_neg_samples(data, neg_edge_index):
-    print('\n')
-    print('neg_edge_index')
-    print(neg_edge_index.shape)
     
     """
     This function updates the `HeteroData` object by adding the negative samples

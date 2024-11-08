@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch_geometric.nn import GINConv, Linear, to_hetero, BatchNorm
+from torch_geometric.nn import GINConv, to_hetero, BatchNorm
 
 node_types = ['compound', 'protein']
 edge_types = [
@@ -10,7 +10,7 @@ edge_types = [
 ]
 
 torch.manual_seed(0)    
-hidden_channels = 16
+hidden_channels = 256
 
 # Check if CUDA is available
 if torch.backends.cuda.is_built() and torch.cuda.is_available():
@@ -26,17 +26,17 @@ else:
 
 
 class GINEncoder(torch.nn.Module):
-    def __init__(self, hidden_channels, out_channels, dropout=0.3):
+    def __init__(self, hidden_channels, out_channels, dropout=0.1):
         super().__init__()
         
         # GIN Layer 1
         self.mlp1 = torch.nn.Sequential(
-            torch.nn.Linear(8, hidden_channels),
-            torch.nn.LeakyReLU(),
+            torch.nn.Linear(128, hidden_channels),
+            torch.nn.ReLU(),
             torch.nn.Linear(hidden_channels, hidden_channels)
         )
         self.conv1 = GINConv(self.mlp1, train_eps=True)
-        self.residual1 = torch.nn.Linear(8, hidden_channels)
+        self.residual1 = torch.nn.Linear(128, hidden_channels)
         self.bn1 = BatchNorm(hidden_channels)
         
         # GIN Layer 2 (hidden -> hidden)
@@ -49,15 +49,25 @@ class GINEncoder(torch.nn.Module):
         self.residual2 = torch.nn.Linear(hidden_channels, hidden_channels)
         self.bn2 = BatchNorm(hidden_channels)
         
-        # GIN Layer 3 (hidden -> out_channels)
+        # GIN Layer 3 (hidden -> hidden)
         self.mlp3 = torch.nn.Sequential(
+            torch.nn.Linear(hidden_channels, hidden_channels),
+            torch.nn.ReLU(),
+            torch.nn.Linear(hidden_channels, hidden_channels)
+        )
+        self.conv3 = GINConv(self.mlp2, train_eps=True)
+        self.residual3 = torch.nn.Linear(hidden_channels, hidden_channels)
+        self.bn3 = BatchNorm(hidden_channels)
+
+        # GIN Layer 4 (hidden -> out_channels)
+        self.mlp4 = torch.nn.Sequential(
             torch.nn.Linear(hidden_channels, out_channels),
             torch.nn.ReLU(),
             torch.nn.Linear(out_channels, out_channels)
         )
-        self.conv3 = GINConv(self.mlp3, train_eps=True)
-        self.residual3 = torch.nn.Linear(hidden_channels, out_channels)
-        self.bn3 = BatchNorm(out_channels)
+        self.conv4 = GINConv(self.mlp3, train_eps=True)
+        self.residual4 = torch.nn.Linear(hidden_channels, out_channels)
+        self.bn4 = BatchNorm(out_channels)
         
         self.dropout = nn.Dropout(p=dropout)
 
@@ -75,18 +85,27 @@ class GINEncoder(torch.nn.Module):
         x = self.conv2(x, edge_index_dict)
         x = self.dropout(x)
         x_res2 = self.residual2(x_res2)
-        # x += x_res1
+        x += x_res1
         x += x_res2
         x = self.bn2(x)
-        
+
         # Third GIN Layer
         x_res3 = x
         x = self.conv3(x, edge_index_dict)
         x = self.dropout(x)
         x_res3 = self.residual3(x_res3)
-        # x += x_res2
+        x += x_res2
         x += x_res3
         x = self.bn3(x)
+        
+        # Forth GIN Layer
+        x_res4 = x
+        x = self.conv4(x, edge_index_dict)
+        x = self.dropout(x)
+        x_res4 = self.residual4(x_res4)
+        x += x_res3
+        x += x_res4
+        x = self.bn4(x)
         
         return x
 
@@ -113,8 +132,8 @@ class MLPDecoder(torch.nn.Module):
 class GNNModel(torch.nn.Module):
     def __init__(self, hidden_channels, data):
         super().__init__()
-        self.encoder = GINEncoder(hidden_channels, hidden_channels)
-        self.encoder = to_hetero(self.encoder, data.metadata(), aggr='sum')
+        self.modelencoder = GINEncoder(hidden_channels, hidden_channels)
+        self.encoder = to_hetero(self.modelencoder, data.metadata(), aggr='sum')
         self.decoder = MLPDecoder(hidden_channels, hidden_channels)
 
         # pos_weight=torch.tensor([5.0])

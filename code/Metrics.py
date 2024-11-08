@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 
 
 
-
 def compute_ci(preds, labels):
     """Compute Concordance Index (CI)"""
     n = len(labels)
@@ -44,8 +43,8 @@ def compute_metrics(preds, labels, isTest = False):
     auprc = sklearn_auc(recall_curve, precision_curve)
 
     ci = None
-    if (isTest):
-        ci = compute_ci(preds, labels)
+    # if (isTest):
+    #     ci = compute_ci(preds, labels)
 
     tn, fp, fn, tp = conf_matrix.ravel()
     specificity = tn / (tn + fp)
@@ -85,7 +84,7 @@ def plot_curve(filename, train_aucs=None, val_aucs=None, test_aucs=None):
     plt.ylabel('AUC')
     plt.legend()
     plt.title('Train, Validation, and Test AUC over Epochs')
-    plt.savefig(f'val_test_train_auc_curve_{filename}.png')
+    plt.savefig(f'../output_plots_and_metrics/val_test_train_auc_curve_{filename}.png')
     plt.close()
 
 def plot_average_auc(fileName, train_aucs_all, val_aucs_all):
@@ -115,5 +114,5 @@ def plot_average_auc(fileName, train_aucs_all, val_aucs_all):
     plt.title('Average AUC Curves Across Folds')
     plt.legend(loc='best')
     plt.grid(True)
-    plt.savefig(f'AverageAUC_{fileName}.png')
+    plt.savefig(f'../output_plots_and_metrics/AverageAUC_{fileName}.png')
     plt.close()

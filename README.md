@@ -11,8 +11,8 @@ This project aims to assist in drug repurposing by predicting interactions betwe
 - Protein Embeddings: Generated from protein sequences using a script (protein.py), which converts each sequence into a graph and extracts its embedding.
 ## Model
 
-- Encoder: A GNN using SAGEConv layers processes the graph-based embeddings of compounds and proteins.
-- Decoder: An attention-based edge decoder predicts the likelihood of interactions between drug-protein pairs.
+- Encoder: A GNN using GIN layers processes the graph-based embeddings of compounds and proteins.
+- Decoder: A MLP edge decoder predicts the likelihood of interactions between drug-protein pairs.
 - Loss Function: Binary Cross-Entropy with logits.
 ## Installation
 
@@ -25,3 +25,8 @@ pip install -r requirements.txt
 ``` bash
 python Main.py
 ```
+4- If you wan t to change embeddings configs, run
+``` bash
+python EmbGen_Protein.py <method>
+```
+(method : deepwalk or node2vec)

@@ -1,9 +1,10 @@
 import numpy as np
 import pandas as pd
 from rdkit import Chem
-from rdkit.Chem import rdmolops
 import networkx as nx
 from node2vec import Node2Vec
+from DeepWalk import generate_deepwalk_embeddings
+import sys
 
 mainpath ='../outputs/'
 
@@ -41,15 +42,20 @@ def smiles_to_graph(smiles):
 
     return G
 
-def generate_node2vec_embeddings(graph, dimensions, workers=10):
+def generate_embeddings(graph, dimensions, method='node2vec', workers=10):
 
-    num_walks, walk_length = get_dynamic_walk_params(graph)
+    # num_walks, walk_length = get_dynamic_walk_params(graph)
+    num_walks, walk_length = 200, 100
 
-    # Initialize Node2Vec model
-    node2vec = Node2Vec(graph, p=4, q=1, dimensions=dimensions, walk_length=walk_length, num_walks=num_walks, workers=workers)
-    
-    # Fit Node2Vec model
-    model = node2vec.fit(window=10, min_count=1, batch_words=4)
+    if method == 'node2vec':
+        # Initialize Node2Vec model
+        node2vec = Node2Vec(graph, p=4, q=1, dimensions=dimensions, walk_length=walk_length, num_walks=100, workers=workers)
+        model = node2vec.fit(window=10, min_count=1, batch_words=4)
+
+    elif method == 'deepwalk':
+        # Initialize DeepWalk model
+        model = generate_deepwalk_embeddings(graph, num_walks=num_walks, walk_length=walk_length, dimensions=dimensions)
+
     
     # Get embeddings for all nodes
     embeddings = {node: model.wv[node] for node in graph.nodes()}
@@ -59,16 +65,15 @@ def generate_node2vec_embeddings(graph, dimensions, workers=10):
     
     return graph_embedding
 
-def generate_drug_embeddings(file_path, dimensions=8):
+def generate_drug_embeddings(file_path, dimensions=128):
     # Read the CSV file
     df = pd.read_csv(file_path, header=0)
-    smiles_list = dict(zip(df.iloc[:, 0], df.iloc[:, 1]))  # Assuming the first column is drug_id and the second is SMILES
-    # print(smiles_list)
-    # print(smiles_list[0])
-    drug_embeddings = {}
-    
-    node_sets = []     # List to store node sets from each graph
+    df.drop_duplicates()
 
+    smiles_list = dict(zip(df.iloc[:, 0], df.iloc[:, 1]))  # Assuming the first column is drug_id and the second is SMILES
+   
+    drug_embeddings = {}
+    node_sets = []
     for drug_id, smiles in smiles_list.items():
         try:
             graph = smiles_to_graph(smiles)
@@ -79,7 +84,7 @@ def generate_drug_embeddings(file_path, dimensions=8):
             node_sets.append(set(node_names))
             # print(f"Node names for compound {drug_id}: {node_names}")
 
-            embedding = generate_node2vec_embeddings(graph, dimensions=dimensions)
+            embedding = generate_embeddings(graph, dimensions=dimensions)
             drug_embeddings[drug_id] = embedding
             print(drug_id)
         except Exception as e:
@@ -96,6 +101,18 @@ def generate_drug_embeddings(file_path, dimensions=8):
 
     return embeddings_df
 
-file_path = '../dataset/KIBA_compound_mapping.csv'
-embeddings_df = generate_drug_embeddings(file_path)
-embeddings_df.to_csv(f'{mainpath}KIBA_compound_embeddings.csv', index=True)
+
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage: python EmbGen_Compound.py <method>")
+        sys.exit(1)
+
+    method = sys.argv[1].lower()
+    if method not in ['node2vec', 'deepwalk']:
+        print("Method must be either 'node2vec' or 'deepwalk'")
+        sys.exit(1)
+
+    file_path = '../dataset/Kiba_compound_mapping.csv'
+    embeddings_df = generate_drug_embeddings(file_path)
+    embeddings_df.to_csv(f'{mainpath}Kiba_compound_embeddings_{method}.csv', index=True)

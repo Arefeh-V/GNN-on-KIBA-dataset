@@ -2,8 +2,12 @@ import pandas as pd
 import networkx as nx
 from node2vec import Node2Vec
 import numpy as np
+from DeepWalk import generate_deepwalk_embeddings
+import sys
 
 mainpath ='../outputs/'
+
+
 
 def get_dynamic_walk_params(graph):
     num_nodes = graph.number_of_nodes()
@@ -27,9 +31,11 @@ def protein_sequence_to_graph(sequence):
         G.add_edge(sequence[i], sequence[i+1])
     return G
 
-def generate_protein_embeddings(protein_file_path, dimensions=8, workers=10):
+def generate_protein_embeddings(protein_file_path, method='node2vec', dimensions=128, workers=10):
     # Read the protein data
     protein_data = pd.read_csv(protein_file_path)
+    protein_data.drop_duplicates()
+
     
     embeddings = {}
     node_sets = [] 
@@ -40,23 +46,20 @@ def generate_protein_embeddings(protein_file_path, dimensions=8, workers=10):
         
         # Convert the protein sequence to a graph
         graph = protein_sequence_to_graph(sequence)
-        # num_nodes = graph.number_of_nodes()
-        # node_names = sorted(list(graph.nodes()))
-        # node_sets.append(set(node_names))
-        # print(f"Node names for protein {protein_id}: {node_names}")
-        
-        num_walks, walk_length = get_dynamic_walk_params(graph)
+      
+        num_walks, walk_length = 100,100
         print('PROTEIN_ID:',row['PROTEIN_ID'], 'num_walks:', num_walks, ' walk_length:', walk_length )
         
 
-        # Initialize Node2Vec model
-        node2vec = Node2Vec(graph, p=4, q=1, dimensions=dimensions, walk_length=walk_length, num_walks=num_walks, workers=workers)
-        
-        # Precompute the walks (this step ensures the vocabulary is built)
-        walks = node2vec.walks  # This generates the walks
-        
-        # Fit Node2Vec model
-        model = node2vec.fit(window=10, min_count=1, batch_words=4)
+        if method == 'node2vec':
+            # Initialize Node2Vec model
+            node2vec = Node2Vec(graph, p=4, q=1, dimensions=dimensions, walk_length=walk_length, num_walks=num_walks, workers=workers)
+            model = node2vec.fit(window=10, min_count=1, batch_words=4)
+
+        elif method == 'deepwalk':
+            # Initialize DeepWalk model
+            model = generate_deepwalk_embeddings(graph, num_walks=num_walks, walk_length=walk_length, dimensions=dimensions)
+
         
         # Get embeddings for all nodes
         default_embedding = np.zeros(dimensions)
@@ -76,6 +79,16 @@ def generate_protein_embeddings(protein_file_path, dimensions=8, workers=10):
 
     return embeddings_df
 
-protein_file_path = '../dataset/KIBA_protein_mapping.csv'
-embeddings_df = generate_protein_embeddings(protein_file_path)
-embeddings_df.to_csv(f'{mainpath}KIBA_protein_embeddings.csv', index=True)
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage: python EmbGen_Protein.py <method>")
+        sys.exit(1)
+
+    method = sys.argv[1].lower()
+    if method not in ['node2vec', 'deepwalk']:
+        print("Method must be either 'node2vec' or 'deepwalk'")
+        sys.exit(1)
+
+    protein_file_path = '../dataset/Kiba_protein_mapping.csv'
+    embeddings_df = generate_protein_embeddings(protein_file_path, method=method)
+    embeddings_df.to_csv(f'{mainpath}Kiba_protein_embeddings_{method}.csv', index=True)
